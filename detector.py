@@ -52,11 +52,11 @@ def check_ip_address(url):
         return 0, "Domain name detected"
 
 def classify_risk(score):
-    if score <= 2:
+    if score < 2:
         return "SAFE"
-    elif score <= 5:
+    elif score < 5:
         return "MEDIUM RISK"
-    elif score <= 8:
+    elif score < 8:
         return "HIGH RISK"
     else:
         return "VERY HIGH RISK"
