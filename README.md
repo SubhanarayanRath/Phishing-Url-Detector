@@ -1,2 +1,2 @@
 # Phishing-Url-Detector
-A cybersecurity project that detects phishing websites using URL feature engineering and machine learning algorithms.
+A Python-based CLI tool that detects potentially malicious phishing URLs using heuristic analysis, risk scoring, batch scanning, CSV report generation, and colorized terminal output.
