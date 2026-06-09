@@ -1,5 +1,11 @@
 from urllib.parse import urlparse
 import ipaddress
+import csv
+
+from colorama import Fore, Style, init
+
+init(autoreset=True)
+
 
 def get_url():
     url = input("Enter URL: ")
@@ -9,6 +15,7 @@ def get_url():
 def check_https(url):
     if url.startswith("https://"):
         return 0, "HTTPS detected"
+
     return 2, "Uses HTTP instead of HTTPS"
 
 
@@ -29,13 +36,22 @@ def check_hyphens(url):
 
 
 def check_keywords(url):
-    suspicious_keywords = ["login","verify","update","secure","account","password","banking"]
+    suspicious_keywords = [
+        "login",
+        "verify",
+        "update",
+        "secure",
+        "account",
+        "password",
+        "banking"
+    ]
 
     for keyword in suspicious_keywords:
         if keyword in url.lower():
             return 2, f"Suspicious keyword detected: {keyword}"
 
     return 0, "No suspicious keywords detected"
+
 
 def check_ip_address(url):
     try:
@@ -51,30 +67,71 @@ def check_ip_address(url):
     except ValueError:
         return 0, "Domain name detected"
 
+
 def classify_risk(score):
-    if score < 2:
+    if score <= 2:
         return "SAFE"
-    elif score < 5:
+    elif score <= 5:
         return "MEDIUM RISK"
-    elif score < 8:
+    elif score <= 8:
         return "HIGH RISK"
     else:
         return "VERY HIGH RISK"
 
+
+def get_risk_color(risk_level):
+    if risk_level == "SAFE":
+        return Fore.GREEN
+
+    elif risk_level == "MEDIUM RISK":
+        return Fore.YELLOW
+
+    else:
+        return Fore.RED
+
+
 def analyze_url(url):
-    score, message = check_https(url)
+    https_score, https_reason = check_https(url)
     hyphen_score, hyphen_reason = check_hyphens(url)
     length_score, length_reason = check_url_length(url)
     keyword_score, keyword_reason = check_keywords(url)
     ip_score, ip_reason = check_ip_address(url)
 
-    total_score = (score + hyphen_score + length_score + keyword_score + ip_score)
+    total_score = (
+        https_score
+        + hyphen_score
+        + length_score
+        + keyword_score
+        + ip_score
+    )
 
     risk_level = classify_risk(total_score)
 
-    reasons = [message, hyphen_reason, length_reason, keyword_reason, ip_reason]
+    reasons = [
+        https_reason,
+        hyphen_reason,
+        length_reason,
+        keyword_reason,
+        ip_reason
+    ]
 
     return total_score, risk_level, reasons
+
+
+def export_to_csv(results):
+    with open("report.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "URL",
+            "Risk Score",
+            "Risk Level"
+        ])
+
+        writer.writerows(results)
+
+    print("\nReport saved as report.csv")
+
 
 def scan_file(filename):
     try:
@@ -84,6 +141,8 @@ def scan_file(filename):
         print("\nBatch Scan Results")
         print("-" * 60)
 
+        results = []
+
         for url in urls:
             url = url.strip()
 
@@ -92,12 +151,26 @@ def scan_file(filename):
 
             score, risk_level, reasons = analyze_url(url)
 
+            results.append([
+                url,
+                score,
+                risk_level
+            ])
+
+            color = get_risk_color(risk_level)
+
             print(f"\nURL: {url}")
             print(f"Score: {score}")
-            print(f"Risk Level: {risk_level}")
+            print(
+                f"Risk Level: "
+                f"{color}{risk_level}{Style.RESET_ALL}"
+            )
+
+        export_to_csv(results)
 
     except FileNotFoundError:
         print("File not found.")
+
 
 def main():
     choice = input(
@@ -112,10 +185,16 @@ def main():
 
         score, risk_level, reasons = analyze_url(url)
 
+        color = get_risk_color(risk_level)
+
         print("\nResult")
         print("------")
         print(f"Risk Score: {score}")
-        print(f"Risk Level: {risk_level}")
+
+        print(
+            f"Risk Level: "
+            f"{color}{risk_level}{Style.RESET_ALL}"
+        )
 
         print("\nReasons:")
         for reason in reasons:
@@ -126,6 +205,7 @@ def main():
 
     else:
         print("Invalid choice.")
+
 
 if __name__ == "__main__":
     main()
