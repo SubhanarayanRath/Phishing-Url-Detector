@@ -61,10 +61,7 @@ def classify_risk(score):
     else:
         return "VERY HIGH RISK"
 
-
-def main():
-    url = get_url()
-
+def analyze_url(url):
     score, message = check_https(url)
     hyphen_score, hyphen_reason = check_hyphens(url)
     length_score, length_reason = check_url_length(url)
@@ -75,18 +72,60 @@ def main():
 
     risk_level = classify_risk(total_score)
 
-    print("\nResult")
-    print("------")
-    print(f"Risk Score: {total_score}")
-    print(f"Risk Level: {risk_level}")
+    reasons = [message, hyphen_reason, length_reason, keyword_reason, ip_reason]
 
-    print("\nReasons:")
-    print(f"- {message}")
-    print(f"- {hyphen_reason}")
-    print(f"- {length_reason}")
-    print(f"- {keyword_reason}")
-    print(f"- {ip_reason}")
+    return total_score, risk_level, reasons
 
+def scan_file(filename):
+    try:
+        with open(filename, "r") as file:
+            urls = file.readlines()
+
+        print("\nBatch Scan Results")
+        print("-" * 60)
+
+        for url in urls:
+            url = url.strip()
+
+            if not url:
+                continue
+
+            score, risk_level, reasons = analyze_url(url)
+
+            print(f"\nURL: {url}")
+            print(f"Score: {score}")
+            print(f"Risk Level: {risk_level}")
+
+    except FileNotFoundError:
+        print("File not found.")
+
+def main():
+    choice = input(
+        "Choose an option:\n"
+        "1. Scan a single URL\n"
+        "2. Scan URLs from file\n\n"
+        "Enter choice: "
+    )
+
+    if choice == "1":
+        url = get_url()
+
+        score, risk_level, reasons = analyze_url(url)
+
+        print("\nResult")
+        print("------")
+        print(f"Risk Score: {score}")
+        print(f"Risk Level: {risk_level}")
+
+        print("\nReasons:")
+        for reason in reasons:
+            print(f"- {reason}")
+
+    elif choice == "2":
+        scan_file("sample-url.txt")
+
+    else:
+        print("Invalid choice.")
 
 if __name__ == "__main__":
     main()
