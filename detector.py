@@ -8,8 +8,7 @@ init(autoreset=True)
 
 
 def get_url():
-    url = input("Enter URL: ")
-    return url
+    return input("Enter URL: ")
 
 
 def check_https(url):
@@ -55,7 +54,9 @@ def check_keywords(url):
 
 def check_ip_address(url):
     try:
-        domain = urlparse(url).netloc
+        parsed = urlparse(url)
+
+        domain = parsed.netloc if parsed.netloc else parsed.path
 
         if ":" in domain:
             domain = domain.split(":")[0]
@@ -82,10 +83,8 @@ def classify_risk(score):
 def get_risk_color(risk_level):
     if risk_level == "SAFE":
         return Fore.GREEN
-
     elif risk_level == "MEDIUM RISK":
         return Fore.YELLOW
-
     else:
         return Fore.RED
 
@@ -201,7 +200,8 @@ def main():
             print(f"- {reason}")
 
     elif choice == "2":
-        scan_file("sample-url.txt")
+        filename = input("Enter filename: ")
+        scan_file(filename)
 
     else:
         print("Invalid choice.")
